@@ -1,0 +1,10 @@
+{
+  "name": "unplugin-dbg",
+  "version": "0.0.0",
+  "description": "`dbg!` for JavaScript, logging values with context effortlessly.",
+  "packageManager": "yarn@4.4.1",
+  "scripts": {
+    "test:plugin": "cd plugin && cargo test --all",
+    "build:plugin": "cd plugin && cargo build --release"
+  }
+}

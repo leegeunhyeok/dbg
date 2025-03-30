@@ -1,0 +1,40 @@
+[package]
+name = "swc_plugin_dbg"
+version = { workspace = true }
+edition = { workspace = true }
+
+[workspace]
+members = [
+    ".",
+    "transform",
+]
+
+[workspace.package]
+edition = "2021"
+version = "0.1.0"
+
+[workspace.dependencies]
+serde = "1"
+swc_core = "16.10.*"
+swc_ecma_parser = "11.0.0"
+swc_ecma_transforms_testing = "12.0.0"
+testing = "5.0.0"
+tracing = "0.1.40"
+
+[dependencies]
+serde = { workspace = true }
+swc_core = { workspace = true, features = ["ecma_plugin_transform"] }
+swc_dbg = { path = "./transform" }
+tracing = { workspace = true, features = ["release_max_level_off"] }
+
+[lib]
+crate-type = ["cdylib"]
+
+[profile.release]
+lto = true
+opt-level = 's'
+strip = 'symbols'
+
+# .cargo/config.toml defines few alias to build plugin.
+# cargo build-wasi generates wasm-wasi32 binary
+# cargo build-wasm32 generates wasm32-unknown-unknown binary.

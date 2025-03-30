@@ -1,0 +1,8 @@
+{
+  "search.exclude": {
+    "**/.yarn": true,
+    "**/.pnp.*": true
+  },
+  "rust-analyzer.linkedProjects": ["plugin/Cargo.toml"],
+  "cSpell.words": ["dbg"]
+}
