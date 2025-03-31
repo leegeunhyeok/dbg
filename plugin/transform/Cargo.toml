@@ -1,12 +1,12 @@
 [package]
-name = "swc_dbg"
+name    = "swc_dbg"
 edition = { workspace = true }
 version = { workspace = true }
 
 [dependencies]
-serde = { workspace = true }
-swc_core = { workspace = true, features = ["ecma_plugin_transform", "ecma_utils"] }
-tracing = { workspace = true }
+serde      = { workspace = true }
+swc_core   = { workspace = true, features = ["ecma_codegen", "ecma_utils"] }
+swc_common = { workspace = true }
 
 [dev-dependencies]
 swc_ecma_parser = { workspace = true }

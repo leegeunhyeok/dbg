@@ -3,6 +3,14 @@
     "**/.yarn": true,
     "**/.pnp.*": true
   },
-  "rust-analyzer.linkedProjects": ["plugin/Cargo.toml"],
-  "cSpell.words": ["dbg"]
+  "rust-analyzer.cargo.target": "wasm32-wasip1",
+  "rust-analyzer.linkedProjects": [
+    "plugin/Cargo.toml"
+  ],
+  "cSpell.words": [
+    "dbg",
+    "ctxt"
+  ],
+  "typescript.tsdk": ".yarn/sdks/typescript/lib",
+  "typescript.enablePromptUseWorkspaceTsdk": true
 }

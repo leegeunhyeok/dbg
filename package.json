@@ -1,10 +1,19 @@
 {
   "name": "unplugin-dbg",
+  "type": "module",
   "version": "0.0.0",
   "description": "`dbg!` for JavaScript, logging values with context effortlessly.",
   "packageManager": "yarn@4.4.1",
   "scripts": {
+    "demo": "yarn build && tsx demo/index.ts",
     "test:plugin": "cd plugin && cargo test --all",
-    "build:plugin": "cd plugin && cargo build --release"
+    "build:plugin": "cd plugin && cargo build --target wasm32-wasip1 --release",
+    "build": "yarn build:plugin"
+  },
+  "devDependencies": {
+    "@swc/core": "^1.11.13",
+    "@types/node": "^22",
+    "tsx": "^4.19.3",
+    "typescript": "^5.8.2"
   }
 }

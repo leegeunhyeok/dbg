@@ -14,3 +14,7 @@
 
 # rust
 target
+.swc
+
+# misc
+.DS_Store
