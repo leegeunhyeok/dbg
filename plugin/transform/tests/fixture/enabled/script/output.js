@@ -1,8 +1,5 @@
 const { _: __dbg } = require("unplugin-dbg/runtime");
-const __mod = __dbg.call(null, {
-    expr: '"cjs"',
-    value: "cjs"
-});
+const __mod = require("cjs");
 __dbg.call(null, {
     expr: '"hello, world"',
     value: "hello, world"

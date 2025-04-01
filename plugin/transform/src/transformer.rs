@@ -52,13 +52,10 @@ impl DbgTransformer {
     /// ```
     fn is_dbg_call(&self, call_expr: &CallExpr) -> bool {
         match &call_expr.callee {
-            Callee::Expr(expr) => {
-                if let Some(ident) = expr.as_ident() {
-                    // Only handle `dbg` function when it's unresolved.
-                    ident.ctxt == self.unresolved_ctxt
-                } else {
-                    false
-                }
+            Callee::Expr(callee_expr) => {
+                // Only handle `dbg` function when it's unresolved.
+                callee_expr.is_ident_ref_to("dbg")
+                    && callee_expr.as_ident().unwrap().ctxt == self.unresolved_ctxt
             }
             _ => false,
         }

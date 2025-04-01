@@ -1,5 +1,5 @@
 const { _: __dbg } = require("unplugin-dbg/runtime");
-const __mod = __dbg.shim("cjs");
+const __mod = require("cjs");
 __dbg.shim("hello, world");
 function sum(a, b) {
     const result = __dbg.shim(a + b);
