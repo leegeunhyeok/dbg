@@ -177,7 +177,7 @@ swc.transform(code, {
 ```
 
 ```ts
-// Use the plugin with SWC
+// Use `dbg` manually
 import { _ as dbg } from 'unplugin-dbg/runtime';
 
 // Without location context
