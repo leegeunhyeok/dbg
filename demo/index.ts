@@ -35,7 +35,7 @@ const buildResult = await esbuild.build({
   plugins: [
     dbgResolvePlugin,
     plugin({
-      baseOptions: (_, id) => ({
+      baseSwcOptions: (_, id) => ({
         filename: path.basename(id),
       }),
     }),

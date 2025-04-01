@@ -27,10 +27,10 @@ export const unpluginFactory: UnpluginFactory<Options | undefined> = (
           },
         },
       },
-      options?.baseOptions
-        ? typeof options.baseOptions === 'function'
-          ? options.baseOptions(code, id)
-          : options.baseOptions
+      options?.baseSwcOptions
+        ? typeof options.baseSwcOptions === 'function'
+          ? options.baseSwcOptions(code, id)
+          : options.baseSwcOptions
         : {},
       mergeArray
     );
