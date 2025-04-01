@@ -3,18 +3,62 @@
   "type": "module",
   "version": "0.0.0",
   "description": "Rust `dbg!` for JavaScript, logging values with context effortlessly.",
+  "keywords": [
+    "unplugin",
+    "vite",
+    "webpack",
+    "rollup",
+    "transform",
+    "swc",
+    "debug"
+  ],
+  "workspaces": [
+    "playground"
+  ],
   "packageManager": "yarn@4.8.1",
+  "main": "dist/index.cjs",
+  "module": "dist/index.js",
   "types": "index.d.ts",
   "exports": {
     ".": {
-      "import": {
-        "types": "./dist/plugin.d.ts",
-        "default": "./dist/plugin.js"
-      },
-      "require": {
-        "types": "./dist/plugin.d.cts",
-        "default": "./dist/plugin.cjs"
-      }
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./astro": {
+      "import": "./dist/astro.js",
+      "require": "./dist/astro.cjs"
+    },
+    "./rspack": {
+      "import": "./dist/rspack.js",
+      "require": "./dist/rspack.cjs"
+    },
+    "./vite": {
+      "import": "./dist/vite.js",
+      "require": "./dist/vite.cjs"
+    },
+    "./webpack": {
+      "import": "./dist/webpack.js",
+      "require": "./dist/webpack.cjs"
+    },
+    "./rollup": {
+      "import": "./dist/rollup.js",
+      "require": "./dist/rollup.cjs"
+    },
+    "./esbuild": {
+      "import": "./dist/esbuild.js",
+      "require": "./dist/esbuild.cjs"
+    },
+    "./nuxt": {
+      "import": "./dist/nuxt.js",
+      "require": "./dist/nuxt.cjs"
+    },
+    "./farm": {
+      "import": "./dist/farm.js",
+      "require": "./dist/farm.cjs"
+    },
+    "./types": {
+      "import": "./dist/types.js",
+      "require": "./dist/types.cjs"
     },
     "./runtime": {
       "import": {
@@ -25,9 +69,22 @@
         "types": "./dist/runtime.d.cts",
         "default": "./dist/runtime.cjs"
       }
+    },
+    "./*": "./*"
+  },
+  "typesVersions": {
+    "*": {
+      "*": [
+        "./dist/*",
+        "./*"
+      ]
     }
   },
+  "files": [
+    "dist"
+  ],
   "scripts": {
+    "prepublishOnly": "yarn build",
     "demo": "yarn build && tsx demo/index.ts",
     "lint": "yarn lint:plugin && yarn lint:runtime",
     "test": "yarn test:plugin && yarn test:runtime",
@@ -39,13 +96,53 @@
     "test:runtime": "echo 'TODO'",
     "build:runtime": "tsup"
   },
+  "dependencies": {
+    "unplugin": "^2.1.2"
+  },
   "devDependencies": {
+    "@nuxt/kit": "^3.16.2",
     "@swc/core": "^1.11.13",
     "@types/node": "^22",
     "esbuild": "^0.25.2",
     "oxlint": "^0.16.4",
+    "rollup": "^4.34.6",
     "tsup": "^8.4.0",
     "tsx": "^4.19.3",
-    "typescript": "^5.8.2"
+    "typescript": "^5.8.2",
+    "vite": "^6.1.0",
+    "vitest": "^3.0.5",
+    "webpack": "^5.97.1"
+  },
+  "peerDependencies": {
+    "@farmfe/core": ">=1",
+    "@nuxt/kit": "^3",
+    "@nuxt/schema": "^3",
+    "esbuild": "*",
+    "rollup": "^3",
+    "vite": ">=3",
+    "webpack": "^4 || ^5"
+  },
+  "peerDependenciesMeta": {
+    "@farmfe/core": {
+      "optional": true
+    },
+    "@nuxt/kit": {
+      "optional": true
+    },
+    "@nuxt/schema": {
+      "optional": true
+    },
+    "esbuild": {
+      "optional": true
+    },
+    "rollup": {
+      "optional": true
+    },
+    "vite": {
+      "optional": true
+    },
+    "webpack": {
+      "optional": true
+    }
   }
 }
