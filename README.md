@@ -160,17 +160,28 @@ build({
 
 <br></details>
 
+```ts
+import type { Options as SwcOptions } from '@swc/core';
+
+export interface Options {
+  /**
+   * Base options for SWC.
+   */
+  baseOptions?: SwcOptions | ((code: string, id: string) => SwcOptions);
+}
+```
+
+---
+
 <details>
 <summary>Advanced usage</summary><br>
 
 ```ts
 // Use the plugin with SWC
-import swcPlugin from 'unplugin-dbg/swc-plugin';
-
 swc.transform(code, {
   jsc: {
     experimental: {
-      plugins: [[swcPlugin, {}]],
+      plugins: [['unplugin-dbg/swc-plugin', {}]],
     },
   },
 });
