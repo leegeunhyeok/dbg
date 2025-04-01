@@ -10,7 +10,7 @@ Rust's [dbg!](https://doc.rust-lang.org/std/macro.dbg.html) for JavaScript, logg
 
 ## Features
 
-- Easy to use, no need to import the `dbg` function, it's available globally.
+- Easy to use, no need to import anything, it's available globally.
 - Works in any JavaScript runtime, including Node.js, browsers, Bun, etc.
 - Supports modern bundlers via [unplugin](https://github.com/unjs/unplugin).
 
