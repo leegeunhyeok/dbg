@@ -2,7 +2,7 @@
   "name": "unplugin-dbg",
   "type": "module",
   "version": "0.0.0-alpha.1",
-  "description": "Rust `dbg!` for JavaScript, logging values with context effortlessly.",
+  "description": "Rust's `dbg!` for JavaScript, logging values with context effortlessly.",
   "keywords": [
     "unplugin",
     "vite",
