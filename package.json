@@ -2,17 +2,43 @@
   "name": "unplugin-dbg",
   "type": "module",
   "version": "0.0.0",
-  "description": "`dbg!` for JavaScript, logging values with context effortlessly.",
-  "packageManager": "yarn@4.4.1",
+  "description": "Rust `dbg!` for JavaScript, logging values with context effortlessly.",
+  "packageManager": "yarn@4.8.1",
+  "types": "index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/plugin.d.ts",
+        "default": "./dist/plugin.js"
+      },
+      "require": {
+        "types": "./dist/plugin.d.cts",
+        "default": "./dist/plugin.cjs"
+      }
+    },
+    "./runtime": {
+      "import": {
+        "types": "./dist/runtime.d.ts",
+        "default": "./dist/runtime.js"
+      },
+      "require": {
+        "types": "./dist/runtime.d.cts",
+        "default": "./dist/runtime.cjs"
+      }
+    }
+  },
   "scripts": {
     "demo": "yarn build && tsx demo/index.ts",
     "test:plugin": "cd plugin && cargo test --all",
     "build:plugin": "cd plugin && cargo build --target wasm32-wasip1 --release",
-    "build": "yarn build:plugin"
+    "build:runtime": "tsup",
+    "build": "yarn build:plugin && yarn build:runtime"
   },
   "devDependencies": {
     "@swc/core": "^1.11.13",
     "@types/node": "^22",
+    "esbuild": "^0.25.2",
+    "tsup": "^8.4.0",
     "tsx": "^4.19.3",
     "typescript": "^5.8.2"
   }
