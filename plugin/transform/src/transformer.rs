@@ -13,13 +13,9 @@ use swc_core::{
 
 use crate::types::{DbgArg, Loc};
 
-const NL: &str = "\n";
-const SEMICOL: &str = ";";
-const INDENT: &str = "  "; // 2 spaces
+const DBG_RUNTIME_SRC: &str = "unplugin-dbg/runtime";
 const DBG_EXP_MEMBER: &str = "_";
-#[cfg(target_arch = "wasm32")]
-const ANONYMOUS_FILE_NAME: &str = "<anonymous>";
-const DBG_RUNTIME: &str = "unplugin-dbg/runtime";
+const NL: &str = "\n";
 
 pub struct DbgTransformer {
     #[allow(dead_code)]
@@ -40,10 +36,23 @@ impl DbgTransformer {
         }
     }
 
+    /// Check if the given `CallExpr` is a `dbg` function call.
+    ///
+    /// ```js
+    /// dbg(); // true
+    ///
+    /// function (dbg) {
+    ///   dbg(); // false
+    /// }
+    ///
+    /// var dbg;
+    /// dbg(); // false
+    /// ```
     fn is_dbg_call(&self, call_expr: &CallExpr) -> bool {
         match &call_expr.callee {
             Callee::Expr(expr) => {
                 if let Some(ident) = expr.as_ident() {
+                    // Only handle `dbg` function when it's unresolved.
                     ident.ctxt == self.unresolved_ctxt
                 } else {
                     false
@@ -53,11 +62,18 @@ impl DbgTransformer {
         }
     }
 
+    /// Convert `Expr` to JavaScript string.
+    ///
+    /// ```js
+    /// a + b + 10 + "hello"
+    /// // Into
+    /// "a + b + 10 + 'hello'"
+    /// ```
     fn expr_to_str(&self, expr: &Expr) -> String {
         let cm: Lrc<SourceMap> = Default::default();
         let mut buf = vec![];
         let mut wr = JsWriter::new(cm.clone(), NL, &mut buf, None);
-        wr.set_indent_str(INDENT);
+        wr.set_indent_str("  " /* 2 spaces */);
 
         let mut emitter = Emitter {
             cfg: Default::default(),
@@ -70,20 +86,19 @@ impl DbgTransformer {
             .emit_script(&Script {
                 span: Default::default(),
                 shebang: None,
-                body: vec![Stmt::Expr(ExprStmt {
-                    expr: Box::new(expr.clone()),
-                    ..Default::default()
-                })],
+                body: vec![expr.clone().into_stmt()],
             })
             .unwrap();
 
+        // Convert to string and strip newline and semicolon at the end
         String::from_utf8(buf)
             .unwrap()
             .trim_end_matches(NL)
-            .trim_end_matches(SEMICOL)
+            .trim_end_matches(";")
             .to_string()
     }
 
+    /// Get location of the given span
     #[allow(unused_variables)]
     fn get_loc(&self, span: Span) -> Option<Loc> {
         // `lookup_char_pos` is only available in `wasm32` target.
@@ -92,15 +107,20 @@ impl DbgTransformer {
             let loc = self.cm.lookup_char_pos(span.lo());
             let file = match loc.file.name.as_ref() {
                 FileName::Real(path) => path.to_string_lossy().to_string(),
-                _ => String::from(ANONYMOUS_FILE_NAME),
+                _ => String::from("<anonymous>"),
             };
 
-            return Some(Loc(file, loc.line, loc.col.0 + 1));
+            return Some(Loc(
+                file,
+                loc.line,
+                loc.col.0 + 1, /* Add 1 for zero-based col index */
+            ));
         }
         #[allow(unreachable_code)]
         None
     }
 
+    /// Convert `ExprOrSpread` to `DbgArg`
     fn to_dbg_arg(&self, arg: ExprOrSpread) -> DbgArg {
         let expr_str = self.expr_to_str(&*arg.expr);
 
@@ -114,25 +134,20 @@ impl VisitMut for DbgTransformer {
     fn visit_mut_script(&mut self, script: &mut Script) {
         script.visit_mut_children_with(self);
 
+        // Insert require call expression at the top of the script.
+        //
+        // ```js
+        // const { _: __dbg } = require('unplugin-dbg/runtime');
+        // ```
         if self.has_dbg_call {
-            let require_call = quote_ident!("require").as_call(
-                DUMMY_SP,
-                vec![Expr::Lit(Lit::Str(Str {
-                    span: DUMMY_SP,
-                    value: DBG_RUNTIME.into(),
-                    raw: None,
-                }))
-                .as_arg()],
-            );
+            let require_call =
+                quote_ident!("require").as_call(DUMMY_SP, vec![DBG_RUNTIME_SRC.as_arg()]);
 
             let require_var_decl = require_call.into_var_decl(
                 VarDeclKind::Const,
                 Pat::Object(ObjectPat {
                     props: vec![ObjectPatProp::KeyValue(KeyValuePatProp {
-                        key: PropName::Ident(IdentName {
-                            span: DUMMY_SP,
-                            sym: DBG_EXP_MEMBER.into(),
-                        }),
+                        key: PropName::Ident(DBG_EXP_MEMBER.into()),
                         value: Box::new(self.dbg_ident.clone().into()),
                     })],
                     optional: false,
@@ -148,24 +163,25 @@ impl VisitMut for DbgTransformer {
     fn visit_mut_module(&mut self, module: &mut Module) {
         module.visit_mut_children_with(self);
 
+        // Insert import declaration at the top of the module.
+        //
+        // ```js
+        // import { _ as __dbg } from 'unplugin-dbg/runtime';
+        // ```
         if self.has_dbg_call {
             module.body.insert(
                 0,
                 ModuleItem::ModuleDecl(ModuleDecl::Import(ImportDecl {
                     phase: ImportPhase::Evaluation,
                     specifiers: vec![ImportSpecifier::Named(ImportNamedSpecifier {
-                        span: DUMMY_SP,
                         local: self.dbg_ident.clone(),
                         imported: Some(ModuleExportName::Ident(
                             quote_ident!(DBG_EXP_MEMBER).into(),
                         )),
                         is_type_only: false,
-                    })],
-                    src: Box::new(Str {
                         span: DUMMY_SP,
-                        value: DBG_RUNTIME.into(),
-                        raw: None,
-                    }),
+                    })],
+                    src: Box::new(DBG_RUNTIME_SRC.into()),
                     type_only: false,
                     with: None,
                     span: DUMMY_SP,
@@ -177,15 +193,18 @@ impl VisitMut for DbgTransformer {
     fn visit_mut_expr(&mut self, expr: &mut Expr) {
         if let Expr::Call(call_expr) = expr {
             if self.is_dbg_call(call_expr) {
-                let pos = self.get_loc(call_expr.span);
+                let loc = self.get_loc(call_expr.span);
                 let mut args = Vec::with_capacity(call_expr.args.len() + 1);
 
+                // Context object (Location)
                 args.push(
-                    pos.map_or(Expr::Lit(Lit::Null(Null { span: DUMMY_SP })), |pos| {
-                        pos.into_obj_lit().into()
+                    loc.map_or(Expr::Lit(Lit::Null(Null { span: DUMMY_SP })), |loc| {
+                        loc.into_obj_lit().into()
                     })
                     .into(),
                 );
+
+                // Converted arguments
                 args.extend(
                     call_expr
                         .args
@@ -193,15 +212,14 @@ impl VisitMut for DbgTransformer {
                         .map(|arg| self.to_dbg_arg(arg).into_arg()),
                 );
 
+                // Call `__dbg.call` with the converted arguments
                 *expr = self
                     .dbg_ident
                     .clone()
-                    .make_member(IdentName {
-                        span: Default::default(),
-                        sym: "call".into(),
-                    })
+                    .make_member("call".into())
                     .as_call(DUMMY_SP, args);
 
+                // Set flag to `true` to insert import/require at the top of the module/script.
                 self.has_dbg_call = true;
             }
         }

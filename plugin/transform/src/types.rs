@@ -1,8 +1,22 @@
-use swc_common::DUMMY_SP;
 use swc_core::ecma::ast::*;
+use utils::kv;
+
+mod utils {
+    use super::*;
+
+    /// Create a key-value property AST for the object literal.
+    pub fn kv(key: &str, value: Expr) -> Prop {
+        Prop::KeyValue(KeyValueProp {
+            key: PropName::Ident(key.into()),
+            value: Box::new(value),
+        })
+    }
+}
 
 pub struct DbgArg {
+    /// Stringified actual expression in source code.
     expr: String,
+    /// Original expression
     orig: Expr,
 }
 
@@ -11,25 +25,26 @@ impl DbgArg {
         Self { expr, orig }
     }
 
+    /// Convert `DbgArg` to `ExprOrSpread` AST.
+    ///
+    /// ```js
+    /// dbg(1, 2, 3);
+    ///
+    /// // Into
+    /// {
+    ///     expr: "1, 2, 3",
+    ///     value: {
+    ///         expr: "1, 2, 3",
+    ///         value: 1,
+    ///     },
+    /// }
     pub fn into_arg(self) -> ExprOrSpread {
         ExprOrSpread {
             spread: None,
             expr: Box::new(Expr::Object(ObjectLit {
                 props: vec![
-                    PropOrSpread::Prop(Box::new(Prop::KeyValue(KeyValueProp {
-                        key: PropName::Ident(IdentName {
-                            sym: "expr".into(),
-                            ..Default::default()
-                        }),
-                        value: Box::new(Expr::Lit(Lit::Str(Str::from(self.expr)))),
-                    }))),
-                    PropOrSpread::Prop(Box::new(Prop::KeyValue(KeyValueProp {
-                        key: PropName::Ident(IdentName {
-                            sym: "value".into(),
-                            ..Default::default()
-                        }),
-                        value: Box::new(self.orig),
-                    }))),
+                    kv("expr", Expr::from(self.expr)).into(),
+                    kv("value", self.orig).into(),
                 ],
                 ..Default::default()
             })),
@@ -40,41 +55,23 @@ impl DbgArg {
 pub struct Loc(pub String, pub usize, pub usize);
 
 impl Loc {
-    fn obj_prop(&self, key: &str, value: Expr) -> Prop {
-        Prop::KeyValue(KeyValueProp {
-            key: PropName::Ident(IdentName {
-                span: DUMMY_SP,
-                sym: key.into(),
-            }),
-            value: Box::new(value),
-        })
-    }
-
+    /// Convert `Loc` to `ObjectLit` AST.
+    ///
+    /// ```js
+    /// {
+    ///     file: "...",
+    ///     line: 1,
+    ///     col: 1,
+    /// }
+    /// ```
     pub fn into_obj_lit(self) -> ObjectLit {
         let Self(ref file, line, col) = self;
 
         ObjectLit {
-            span: DUMMY_SP,
             props: vec![
-                PropOrSpread::Prop(Box::new(
-                    self.obj_prop("file", Expr::Lit(Lit::Str(file.to_owned().into()))),
-                )),
-                PropOrSpread::Prop(Box::new(self.obj_prop(
-                    "line",
-                    Expr::Lit(Lit::Num(Number {
-                        value: line as f64,
-                        raw: None,
-                        span: DUMMY_SP,
-                    })),
-                ))),
-                PropOrSpread::Prop(Box::new(self.obj_prop(
-                    "col",
-                    Expr::Lit(Lit::Num(Number {
-                        value: col as f64,
-                        raw: None,
-                        span: DUMMY_SP,
-                    })),
-                ))),
+                kv("file", Expr::from(file.to_owned())).into(),
+                kv("line", Expr::from(line)).into(),
+                kv("col", Expr::from(col)).into(),
             ],
             ..Default::default()
         }

@@ -8,8 +8,8 @@ use swc_core::{
 };
 use transformer::DbgTransformer;
 
-pub fn dbg(sm_proxy: PluginSourceMapProxy, unresolved_ctxt: SyntaxContext) -> impl VisitMut + Pass {
-    visit_mut_pass(DbgTransformer::new(sm_proxy, unresolved_ctxt))
+pub fn dbg(cm: PluginSourceMapProxy, unresolved_ctxt: SyntaxContext) -> impl VisitMut + Pass {
+    visit_mut_pass(DbgTransformer::new(cm, unresolved_ctxt))
 }
 
 mod transformer;
