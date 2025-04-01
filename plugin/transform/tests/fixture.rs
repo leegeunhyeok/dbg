@@ -13,13 +13,13 @@ use swc_ecma_transforms_testing::test_fixture;
 fn tr() -> impl VisitMut + Pass {
     let unresolved_mark = Mark::new();
     let top_level_mark = Mark::new();
-    let sm_proxy = PluginSourceMapProxy {
+    let cm = PluginSourceMapProxy {
         source_file: OnceCell::new(),
     };
 
     (
         resolver(unresolved_mark, top_level_mark, false),
-        dbg(sm_proxy, SyntaxContext::empty().apply_mark(unresolved_mark)),
+        dbg(cm, SyntaxContext::empty().apply_mark(unresolved_mark)),
     )
 }
 

@@ -1,3 +1,4 @@
+use swc_common::FileName;
 #[cfg(target_arch = "wasm32")]
 use swc_common::SourceMapper;
 use swc_core::{
@@ -11,16 +12,17 @@ use swc_core::{
     plugin::proxies::PluginSourceMapProxy,
 };
 
-use crate::types::{DbgArg, Pos};
+use crate::types::{DbgArg, Loc};
 
 const NL: &str = "\n";
 const SEMICOL: &str = ";";
 const DBG_EXP_MEMBER: &str = "_";
+const ANONYMOUS_FILE_NAME: &str = "<anonymous>";
 const DBG_RUNTIME: &str = "unplugin-dbg/runtime";
 
 pub struct DbgTransformer {
     #[allow(dead_code)]
-    // Referenced in `get_pos`
+    // Referenced in `get_loc`
     cm: PluginSourceMapProxy,
     unresolved_ctxt: SyntaxContext,
     dbg_ident: Ident,
@@ -81,12 +83,17 @@ impl DbgTransformer {
     }
 
     #[allow(unused_variables)]
-    fn get_pos(&self, span: Span) -> Option<Pos> {
+    fn get_loc(&self, span: Span) -> Option<Loc> {
         // `lookup_char_pos` is only available in `wasm32` target.
         #[cfg(target_arch = "wasm32")]
         {
             let loc = self.cm.lookup_char_pos(span.lo());
-            return Some(Pos(loc.line, loc.col.0 + 1));
+            let file = match loc.file.name.as_ref() {
+                FileName::Real(path) => path.to_string_lossy().to_string(),
+                _ => String::from(ANONYMOUS_FILE_NAME),
+            };
+
+            return Some(Loc(file, loc.line, loc.col.0 + 1));
         }
         #[allow(unreachable_code)]
         None
@@ -168,7 +175,7 @@ impl VisitMut for DbgTransformer {
     fn visit_mut_expr(&mut self, expr: &mut Expr) {
         if let Expr::Call(call_expr) = expr {
             if self.is_dbg_call(call_expr) {
-                let pos = self.get_pos(call_expr.span);
+                let pos = self.get_loc(call_expr.span);
                 let mut args = Vec::with_capacity(call_expr.args.len() + 1);
 
                 args.push(

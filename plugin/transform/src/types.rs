@@ -37,31 +37,44 @@ impl DbgArg {
     }
 }
 
-pub struct Pos(pub usize, pub usize);
+pub struct Loc(pub String, pub usize, pub usize);
 
-impl Pos {
-    fn num_prop(&self, key: &str, value: usize) -> Prop {
+impl Loc {
+    fn obj_prop(&self, key: &str, value: Expr) -> Prop {
         Prop::KeyValue(KeyValueProp {
             key: PropName::Ident(IdentName {
                 span: DUMMY_SP,
                 sym: key.into(),
             }),
-            value: Box::new(Expr::Lit(Lit::Num(Number {
-                value: value as f64,
-                span: DUMMY_SP,
-                raw: None,
-            }))),
+            value: Box::new(value),
         })
     }
 
     pub fn into_obj_lit(self) -> ObjectLit {
-        let Self(line, col) = self;
+        let Self(ref file, line, col) = self;
 
         ObjectLit {
             span: DUMMY_SP,
             props: vec![
-                PropOrSpread::Prop(Box::new(self.num_prop("line", line))),
-                PropOrSpread::Prop(Box::new(self.num_prop("col", col))),
+                PropOrSpread::Prop(Box::new(
+                    self.obj_prop("file", Expr::Lit(Lit::Str(file.to_owned().into()))),
+                )),
+                PropOrSpread::Prop(Box::new(self.obj_prop(
+                    "line",
+                    Expr::Lit(Lit::Num(Number {
+                        value: line as f64,
+                        raw: None,
+                        span: DUMMY_SP,
+                    })),
+                ))),
+                PropOrSpread::Prop(Box::new(self.obj_prop(
+                    "col",
+                    Expr::Lit(Lit::Num(Number {
+                        value: col as f64,
+                        raw: None,
+                        span: DUMMY_SP,
+                    })),
+                ))),
             ],
             ..Default::default()
         }
