@@ -5,7 +5,6 @@ import { createUnplugin, type UnpluginFactory } from 'unplugin';
 import type { Options } from './types';
 
 const require = module.createRequire(import.meta.url ?? __filename);
-const pluginOptions = {};
 const pluginPath = require.resolve('unplugin-dbg/swc-plugin');
 
 function mergeArray(objValue: any[], srcValue: any[]) {
@@ -24,7 +23,7 @@ export const unpluginFactory: UnpluginFactory<Options | undefined> = (
         filename: id,
         jsc: {
           experimental: {
-            plugins: [[pluginPath, pluginOptions]],
+            plugins: [[pluginPath, { enabled: options?.enabled ?? true }]],
           },
         },
       },

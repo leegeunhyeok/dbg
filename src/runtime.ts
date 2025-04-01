@@ -6,8 +6,10 @@ interface ExecuteContext {
 
 interface DebugArgs {
   expr: string;
-  value: any;
+  value: Value;
 }
+
+type Value = any;
 
 function loc(ctx: ExecuteContext | null) {
   return ctx ? `${ctx.file}:${ctx.line}:${ctx.col}` : 'anonymous';
@@ -17,18 +19,24 @@ function str<T>(value: T) {
   return typeof value === 'string' ? `'${value}'` : value;
 }
 
+function ret(...values: Value[]) {
+  return values.length === 1 ? values[0] : values;
+}
+
 function dbg(
   this: ExecuteContext | null,
   ...args: DebugArgs[]
-): DebugArgs['value'] | DebugArgs['value'][] {
-  const retValues: DebugArgs['value'][] = [];
+): Value | Value[] {
+  const retValues: Value[] = [];
 
   for (const { expr, value } of args) {
     console.log(`[${loc(this)}] ${expr} =`, str(value));
     retValues.push(value);
   }
 
-  return retValues.length === 1 ? retValues[0] : retValues;
+  return ret(...retValues);
 }
+
+dbg.shim = ret;
 
 export { dbg as _ };
