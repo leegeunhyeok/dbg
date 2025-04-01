@@ -71,7 +71,7 @@
       }
     },
     "./swc-plugin": "./plugin/swc_plugin_dbg.wasm",
-    "./globals": "./index.d.ts",
+    "./globals": "./globals.d.ts",
     "./*": "./*"
   },
   "typesVersions": {
