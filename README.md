@@ -1,28 +1,70 @@
 # dbg
 
+Rust [dbg!](https://doc.rust-lang.org/std/macro.dbg.html) for JavaScript, logging values with context effortlessly.
+
+## Features
+
+- Easy to use, no need to import the `dbg` function, it's available globally.
+- Works in any JavaScript runtime, including Node.js, browsers, Bun, etc.
+- Supports modern bundlers via [unplugin](https://github.com/unjs/unplugin).
+
+## Usage
+
+In your code, just use `dbg` like this:
+
+```ts
+function sum(a: number, b: number) {
+  const [res, _a, _b] = dbg(a + b, a, b);
+  return res;
+}
+
+const result = dbg(sum(10, 5));
+
+console.log('From console.log!:', result);
+
+// Output:
+// [script.ts:2:25] a + b = 15
+// [script.ts:2:25] a = 10
+// [script.ts:2:25] b = 5
+// [script.ts:6:16] sum(10, 5) = 15
+// From console.log!: 15
+```
+
+![preview](./preview.png)
+
 ## Install
 
+> [!NOTE]
+> Release coming soon.
+
 ```bash
-npm i unplugin-starter
+# npm
+npm i unplugin-dbg
+
+# pnpm
+pnpm i unplugin-dbg
+
+# yarn
+yarn add unplugin-dbg
 ```
+
+Add the plugin to your bundler config:
 
 <details>
 <summary>Vite</summary><br>
 
 ```ts
 // vite.config.ts
-import Starter from 'unplugin-starter/vite';
+import dbg from 'unplugin-dbg/vite';
 
 export default defineConfig({
   plugins: [
-    Starter({
+    dbg({
       /* options */
     }),
   ],
 });
 ```
-
-Example: [`playground/`](./playground/)
 
 <br></details>
 
@@ -31,11 +73,11 @@ Example: [`playground/`](./playground/)
 
 ```ts
 // rollup.config.js
-import Starter from 'unplugin-starter/rollup';
+import dbg from 'unplugin-dbg/rollup';
 
 export default {
   plugins: [
-    Starter({
+    dbg({
       /* options */
     }),
   ],
@@ -52,7 +94,7 @@ export default {
 module.exports = {
   /* ... */
   plugins: [
-    require('unplugin-starter/webpack')({
+    require('unplugin-dbg/webpack')({
       /* options */
     }),
   ],
@@ -69,7 +111,7 @@ module.exports = {
 export default defineNuxtConfig({
   modules: [
     [
-      'unplugin-starter/nuxt',
+      'unplugin-dbg/nuxt',
       {
         /* options */
       },
@@ -90,7 +132,7 @@ export default defineNuxtConfig({
 module.exports = {
   configureWebpack: {
     plugins: [
-      require('unplugin-starter/webpack')({
+      require('unplugin-dbg/webpack')({
         /* options */
       }),
     ],
@@ -106,11 +148,15 @@ module.exports = {
 ```ts
 // esbuild.config.js
 import { build } from 'esbuild';
-import Starter from 'unplugin-starter/esbuild';
+import dbg from 'unplugin-dbg/esbuild';
 
 build({
-  plugins: [Starter()],
+  plugins: [dbg()],
 });
 ```
 
 <br></details>
+
+## License
+
+[MIT](./LICENSE)

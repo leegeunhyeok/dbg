@@ -6,7 +6,7 @@ import plugin from '../src/esbuild';
 
 const __dirname = url.fileURLToPath(path.dirname(import.meta.url));
 const projectRoot = path.resolve(__dirname, '..');
-const scriptPath = path.resolve(__dirname, 'script.js');
+const scriptPath = path.resolve(__dirname, 'script.ts');
 
 const dbgResolvePlugin: esbuild.Plugin = {
   name: 'dbg-resolve',
