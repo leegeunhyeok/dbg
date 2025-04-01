@@ -16,6 +16,7 @@ use crate::types::{DbgArg, Loc};
 
 const NL: &str = "\n";
 const SEMICOL: &str = ";";
+const INDENT: &str = "  "; // 2 spaces
 const DBG_EXP_MEMBER: &str = "_";
 const ANONYMOUS_FILE_NAME: &str = "<anonymous>";
 const DBG_RUNTIME: &str = "unplugin-dbg/runtime";
@@ -53,14 +54,15 @@ impl DbgTransformer {
     }
 
     fn expr_to_str(&self, expr: &Expr) -> String {
-        let mut buf = vec![];
         let cm: Lrc<SourceMap> = Default::default();
-        let wr = Box::new(JsWriter::new(cm.clone(), NL, &mut buf, None));
+        let mut buf = vec![];
+        let mut wr = JsWriter::new(cm.clone(), NL, &mut buf, None);
+        wr.set_indent_str(INDENT);
 
         let mut emitter = Emitter {
             cfg: Default::default(),
             comments: None,
-            wr,
+            wr: Box::new(wr),
             cm,
         };
 
