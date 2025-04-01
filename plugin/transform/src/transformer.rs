@@ -22,15 +22,17 @@ pub struct DbgTransformer {
     // Referenced in `get_loc`
     cm: PluginSourceMapProxy,
     unresolved_ctxt: SyntaxContext,
+    enabled: bool,
     dbg_ident: Ident,
     has_dbg_call: bool,
 }
 
 impl DbgTransformer {
-    pub fn new(cm: PluginSourceMapProxy, unresolved_ctxt: SyntaxContext) -> Self {
+    pub fn new(cm: PluginSourceMapProxy, unresolved_ctxt: SyntaxContext, enabled: bool) -> Self {
         Self {
             cm,
             unresolved_ctxt,
+            enabled,
             dbg_ident: private_ident!("__dbg"),
             has_dbg_call: false,
         }
@@ -193,6 +195,19 @@ impl VisitMut for DbgTransformer {
     fn visit_mut_expr(&mut self, expr: &mut Expr) {
         if let Expr::Call(call_expr) = expr {
             if self.is_dbg_call(call_expr) {
+                // Set flag to `true` to insert import/require at the top of the module/script.
+                self.has_dbg_call = true;
+
+                if self.enabled == false {
+                    // If plugin is disabled, replace the call with `__dbg.shim` with keeping original arguments
+                    *expr = self
+                        .dbg_ident
+                        .clone()
+                        .make_member("shim".into())
+                        .as_call(DUMMY_SP, call_expr.args.drain(..).collect());
+                    return;
+                }
+
                 let loc = self.get_loc(call_expr.span);
                 let mut args = Vec::with_capacity(call_expr.args.len() + 1);
 
@@ -218,9 +233,6 @@ impl VisitMut for DbgTransformer {
                     .clone()
                     .make_member("call".into())
                     .as_call(DUMMY_SP, args);
-
-                // Set flag to `true` to insert import/require at the top of the module/script.
-                self.has_dbg_call = true;
             }
         }
     }

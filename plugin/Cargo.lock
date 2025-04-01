@@ -1917,6 +1917,7 @@ name = "swc_plugin_dbg"
 version = "0.1.0"
 dependencies = [
  "serde",
+ "serde_json",
  "swc_common 8.0.1",
  "swc_core",
  "swc_dbg",
