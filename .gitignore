@@ -20,3 +20,8 @@ plugin/*.wasm
 # misc
 dist
 .DS_Store
+
+
+
+.nx/cache
+.nx/workspace-data

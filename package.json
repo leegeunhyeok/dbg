@@ -96,7 +96,8 @@
     "build:plugin": "cd plugin && cargo build --target wasm32-wasip1 --release && cp target/wasm32-wasip1/release/swc_plugin_dbg.wasm .",
     "lint:runtime": "oxlint src",
     "test:runtime": "echo 'TODO'",
-    "build:runtime": "tsup"
+    "build:runtime": "tsup",
+    "release": "release-it"
   },
   "dependencies": {
     "es-toolkit": "^1.34.1",
@@ -108,6 +109,7 @@
     "@types/node": "^22",
     "esbuild": "^0.25.2",
     "oxlint": "^0.16.4",
+    "release-it": "^18.1.2",
     "rollup": "^4.34.6",
     "tsup": "^8.4.0",
     "tsx": "^4.19.3",
