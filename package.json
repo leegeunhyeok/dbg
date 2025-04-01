@@ -83,6 +83,7 @@
   },
   "files": [
     "dist",
+    "index.d.ts",
     "plugin/swc_plugin_dbg.wasm"
   ],
   "scripts": {
