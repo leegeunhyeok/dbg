@@ -7,4 +7,11 @@ function sum(a, b) {
   dbg("sum res", result);
 }
 
+function inner() {
+  var dbg = () => undefined;
+
+  dbg(1, 2, 3);
+}
+
 sum(5, 10);
+inner();

@@ -20,4 +20,9 @@ function sum(a, b) {
         value: result
     });
 }
+function inner() {
+    var dbg = ()=>undefined;
+    dbg(1, 2, 3);
+}
 sum(5, 10);
+inner();
