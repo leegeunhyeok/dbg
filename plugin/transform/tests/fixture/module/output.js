@@ -1,4 +1,4 @@
-import { dbg as __dbg } from "unplugin-dbg/runtime";
+import { _ as __dbg } from "unplugin-dbg/runtime";
 import __mod from "esm";
 __dbg.call(null, {
     expr: '"hello, world"',

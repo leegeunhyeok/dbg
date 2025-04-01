@@ -15,7 +15,7 @@ use crate::types::{DbgArg, Pos};
 
 const NL: &str = "\n";
 const SEMICOL: &str = ";";
-const DBG_FN: &str = "dbg";
+const DBG_EXP_MEMBER: &str = "_";
 const DBG_RUNTIME: &str = "unplugin-dbg/runtime";
 
 pub struct DbgTransformer {
@@ -122,7 +122,7 @@ impl VisitMut for DbgTransformer {
                     props: vec![ObjectPatProp::KeyValue(KeyValuePatProp {
                         key: PropName::Ident(IdentName {
                             span: DUMMY_SP,
-                            sym: DBG_FN.into(),
+                            sym: DBG_EXP_MEMBER.into(),
                         }),
                         value: Box::new(self.dbg_ident.clone().into()),
                     })],
@@ -147,7 +147,9 @@ impl VisitMut for DbgTransformer {
                     specifiers: vec![ImportSpecifier::Named(ImportNamedSpecifier {
                         span: DUMMY_SP,
                         local: self.dbg_ident.clone(),
-                        imported: Some(ModuleExportName::Ident(quote_ident!(DBG_FN).into())),
+                        imported: Some(ModuleExportName::Ident(
+                            quote_ident!(DBG_EXP_MEMBER).into(),
+                        )),
                         is_type_only: false,
                     })],
                     src: Box::new(Str {
