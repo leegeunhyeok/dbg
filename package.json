@@ -1,7 +1,7 @@
 {
   "name": "unplugin-dbg",
   "type": "module",
-  "version": "0.0.0-alpha.5",
+  "version": "0.0.0-alpha.6",
   "description": "Rust's `dbg!` for JavaScript, logging values with context effortlessly.",
   "keywords": [
     "unplugin",
