@@ -59,4 +59,5 @@ const buildResult = await esbuild.build({
   ],
 });
 
+// eslint-disable-next-line no-eval
 eval(Buffer.from(buildResult.outputFiles[0].contents).toString());

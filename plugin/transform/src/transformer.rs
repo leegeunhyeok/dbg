@@ -1,6 +1,5 @@
-use swc_common::FileName;
 #[cfg(target_arch = "wasm32")]
-use swc_common::SourceMapper;
+use swc_common::{FileName, SourceMapper};
 use swc_core::{
     common::{sync::Lrc, SourceMap, Span, SyntaxContext, DUMMY_SP},
     ecma::{
@@ -18,6 +17,7 @@ const NL: &str = "\n";
 const SEMICOL: &str = ";";
 const INDENT: &str = "  "; // 2 spaces
 const DBG_EXP_MEMBER: &str = "_";
+#[cfg(target_arch = "wasm32")]
 const ANONYMOUS_FILE_NAME: &str = "<anonymous>";
 const DBG_RUNTIME: &str = "unplugin-dbg/runtime";
 

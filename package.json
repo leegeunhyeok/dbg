@@ -29,15 +29,21 @@
   },
   "scripts": {
     "demo": "yarn build && tsx demo/index.ts",
+    "lint": "yarn lint:plugin && yarn lint:runtime",
+    "test": "yarn test:plugin && yarn test:runtime",
+    "build": "yarn build:plugin && yarn build:runtime",
+    "lint:plugin": "cd plugin && cargo fmt --check",
     "test:plugin": "cd plugin && cargo test --all",
     "build:plugin": "cd plugin && cargo build --target wasm32-wasip1 --release",
-    "build:runtime": "tsup",
-    "build": "yarn build:plugin && yarn build:runtime"
+    "lint:runtime": "oxlint src",
+    "test:runtime": "echo 'TODO'",
+    "build:runtime": "tsup"
   },
   "devDependencies": {
     "@swc/core": "^1.11.13",
     "@types/node": "^22",
     "esbuild": "^0.25.2",
+    "oxlint": "^0.16.4",
     "tsup": "^8.4.0",
     "tsx": "^4.19.3",
     "typescript": "^5.8.2"
