@@ -21,16 +21,16 @@ const DBG_RUNTIME: &str = "unplugin-dbg/runtime";
 pub struct DbgTransformer {
     #[allow(dead_code)]
     // Referenced in `get_pos`
-    sm_proxy: PluginSourceMapProxy,
+    cm: PluginSourceMapProxy,
     unresolved_ctxt: SyntaxContext,
     dbg_ident: Ident,
     has_dbg_call: bool,
 }
 
 impl DbgTransformer {
-    pub fn new(sm_proxy: PluginSourceMapProxy, unresolved_ctxt: SyntaxContext) -> Self {
+    pub fn new(cm: PluginSourceMapProxy, unresolved_ctxt: SyntaxContext) -> Self {
         Self {
-            sm_proxy,
+            cm,
             unresolved_ctxt,
             dbg_ident: private_ident!("__dbg"),
             has_dbg_call: false,
@@ -85,7 +85,7 @@ impl DbgTransformer {
         // `lookup_char_pos` is only available in `wasm32` target.
         #[cfg(target_arch = "wasm32")]
         {
-            let loc = self.sm_proxy.lookup_char_pos(span.lo());
+            let loc = self.cm.lookup_char_pos(span.lo());
             return Some(Pos(loc.line, loc.col.0 + 1));
         }
         #[allow(unreachable_code)]
