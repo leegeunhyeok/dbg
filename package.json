@@ -70,6 +70,7 @@
         "default": "./dist/runtime.cjs"
       }
     },
+    "./swc-plugin": "./plugin/swc_plugin_dbg.wasm",
     "./*": "./*"
   },
   "typesVersions": {
@@ -81,7 +82,8 @@
     }
   },
   "files": [
-    "dist"
+    "dist",
+    "plugin/swc_plugin_dbg.wasm"
   ],
   "scripts": {
     "prepublishOnly": "yarn build",
@@ -91,12 +93,13 @@
     "build": "yarn build:plugin && yarn build:runtime",
     "lint:plugin": "cd plugin && cargo fmt --check",
     "test:plugin": "cd plugin && cargo test --all",
-    "build:plugin": "cd plugin && cargo build --target wasm32-wasip1 --release",
+    "build:plugin": "cd plugin && cargo build --target wasm32-wasip1 --release && cp target/wasm32-wasip1/release/swc_plugin_dbg.wasm .",
     "lint:runtime": "oxlint src",
     "test:runtime": "echo 'TODO'",
     "build:runtime": "tsup"
   },
   "dependencies": {
+    "es-toolkit": "^1.34.1",
     "unplugin": "^2.1.2"
   },
   "devDependencies": {
@@ -117,6 +120,7 @@
     "@farmfe/core": ">=1",
     "@nuxt/kit": "^3",
     "@nuxt/schema": "^3",
+    "@swc/core": ">=1",
     "esbuild": "*",
     "rollup": "^3",
     "vite": ">=3",

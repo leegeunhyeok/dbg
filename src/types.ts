@@ -1,3 +1,5 @@
+import type { Options as SwcOptions } from '@swc/core';
+
 export interface Options {
-  // define your plugin options here
+  baseOptions?: SwcOptions | ((code: string, id: string) => SwcOptions);
 }

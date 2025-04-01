@@ -15,6 +15,7 @@
 # rust
 target
 .swc
+plugin/*.wasm
 
 # misc
 dist
