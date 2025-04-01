@@ -157,6 +157,61 @@ build({
 
 <br></details>
 
+<details>
+<summary>Advanced usage</summary><br>
+
+```ts
+// Use the plugin with SWC
+import swcPlugin from 'unplugin-dbg/swc-plugin';
+
+swc.transform(code, {
+  jsc: {
+    experimental: {
+      plugins: [[swcPlugin, {}]],
+    },
+  },
+});
+```
+
+```ts
+// Use the plugin with SWC
+import { _ as dbg } from 'unplugin-dbg/runtime';
+
+// Without location context
+dbg.call(
+  null,
+  {
+    expr: '<expr>',
+    value: expr,
+  },
+  {
+    expr: '10 + 5',
+    value: 10 + 5,
+  }
+  // ...
+);
+
+// With location context
+dbg.call(
+  {
+    file: 'script.ts',
+    line: 1,
+    col: 1,
+  },
+  {
+    expr: '<expr>',
+    value: expr,
+  },
+  {
+    expr: '10 + 5',
+    value: 10 + 5,
+  }
+  // ...
+);
+```
+
+<br></details>
+
 ## License
 
 [MIT](./LICENSE)
