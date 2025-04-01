@@ -4,7 +4,7 @@ import { mergeWith } from 'es-toolkit';
 import { createUnplugin, type UnpluginFactory } from 'unplugin';
 import type { Options } from './types';
 
-const require = module.createRequire(import.meta.url);
+const require = module.createRequire(import.meta.url ?? __filename);
 const pluginOptions = {};
 const pluginPath = require.resolve('unplugin-dbg/swc-plugin');
 
