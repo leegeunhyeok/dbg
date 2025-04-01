@@ -86,7 +86,7 @@ impl DbgTransformer {
         #[cfg(target_arch = "wasm32")]
         {
             let loc = self.sm_proxy.lookup_char_pos(span.lo());
-            return Some(Pos(loc.line, loc.col.0));
+            return Some(Pos(loc.line, loc.col.0 + 1));
         }
         #[allow(unreachable_code)]
         None
