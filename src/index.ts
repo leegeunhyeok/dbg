@@ -34,6 +34,10 @@ export const unpluginFactory: UnpluginFactory<Options | undefined> = (
       mergeArray
     );
 
+    if (mergedOptions.jsc?.parser == null) {
+      return;
+    }
+
     return swc.transform(code, mergedOptions);
   },
 });
