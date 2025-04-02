@@ -55,10 +55,9 @@ pnpm i unplugin-dbg
 yarn add unplugin-dbg
 ```
 
-(Optional) Add types if you use TypeScript:
+(Optional) Add types to your `tsconfig.json` if you use TypeScript:
 
 ```json
-// tsconfig.json
 {
   "compilerOptions": {
     "types": ["unplugin-dbg/globals"]
