@@ -5133,7 +5133,7 @@ __metadata:
     typescript: "npm:^5.8.2"
     unplugin: "npm:^2.1.2"
     vite: "npm:^6.1.0"
-    vitest: "npm:^3.0.5"
+    vitest: "npm:^3.1.1"
     webpack: "npm:^5.97.1"
   peerDependencies:
     "@farmfe/core": ">=1"
@@ -5303,7 +5303,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vitest@npm:^3.0.5":
+"vitest@npm:^3.1.1":
   version: 3.1.1
   resolution: "vitest@npm:3.1.1"
   dependencies:

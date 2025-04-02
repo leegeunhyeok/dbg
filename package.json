@@ -12,9 +12,6 @@
     "swc",
     "debug"
   ],
-  "workspaces": [
-    "playground"
-  ],
   "packageManager": "yarn@4.8.1",
   "main": "dist/index.cjs",
   "module": "dist/index.js",
@@ -107,7 +104,7 @@
     "test:plugin": "cd plugin && cargo test --all",
     "build:plugin": "cd plugin && cargo build --target wasm32-wasip1 --release && cp target/wasm32-wasip1/release/swc_plugin_dbg.wasm .",
     "lint:runtime": "oxlint src",
-    "test:runtime": "echo 'TODO'",
+    "test:runtime": "vitest --run",
     "build:runtime": "tsup",
     "release": "release-it"
   },
@@ -127,7 +124,7 @@
     "tsx": "^4.19.3",
     "typescript": "^5.8.2",
     "vite": "^6.1.0",
-    "vitest": "^3.0.5",
+    "vitest": "^3.1.1",
     "webpack": "^5.97.1"
   },
   "peerDependencies": {

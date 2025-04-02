@@ -11,10 +11,15 @@ function dbg(
   ...args: DebugArgs[]
 ): Value | Value[] {
   const retValues: Value[] = [];
+  const locLabel = `[${loc(this)}]`;
 
-  for (const { expr, value } of args) {
-    console.log(`[${loc(this)}] ${expr} =`, str(value));
-    retValues.push(value);
+  if (args.length === 0) {
+    console.log(locLabel);
+  } else {
+    for (const { expr, value } of args) {
+      console.log(`${locLabel} ${expr} =`, str(value));
+      retValues.push(value);
+    }
   }
 
   return ret(...retValues);

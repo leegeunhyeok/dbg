@@ -18,6 +18,10 @@ Rust's [dbg!](https://doc.rust-lang.org/std/macro.dbg.html) for JavaScript, logg
 
 In your code, just use `dbg` like this:
 
+- `dbg()`: void
+- `dbg(expr)`: expr
+- `dbg(expr, expr2, expr3)`: [expr, expr2, expr3]
+
 ```ts
 function sum(a: number, b: number) {
   const [res, _a, _b] = dbg(a + b, a, b);
