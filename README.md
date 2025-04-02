@@ -2,6 +2,8 @@
 
 # dbg
 
+<img alt="Main image" width="250" src="https://raw.githubusercontent.com/leegeunhyeok/dbg/main/main.png">
+
 Rust's [dbg!](https://doc.rust-lang.org/std/macro.dbg.html) for JavaScript, logging values with context effortlessly.
 
 ![NPM Version](https://img.shields.io/npm/v/unplugin-dbg?style=flat-square&color=%23000000)
@@ -40,7 +42,7 @@ console.log('From console.log!:', result);
 // From console.log!: 15
 ```
 
-![preview](./preview.png)
+![preview](https://raw.githubusercontent.com/leegeunhyeok/dbg/main/preview.png)
 
 ## Install
 
