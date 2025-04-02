@@ -198,6 +198,8 @@ export interface Options {
 <details>
 <summary>Advanced usage</summary><br>
 
+See more about the swc plugin options [here](https://github.com/leegeunhyeok/dbg/blob/main/plugin/src/lib.rs#L9-L13).
+
 ```ts
 // Use the plugin with SWC
 swc.transform(code, {
