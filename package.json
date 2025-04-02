@@ -62,12 +62,22 @@
     },
     "./runtime": {
       "import": {
-        "types": "./dist/runtime.d.ts",
-        "default": "./dist/runtime.js"
+        "types": "./dist/runtime/dbg.d.ts",
+        "default": "./dist/runtime/dbg.js"
       },
       "require": {
-        "types": "./dist/runtime.d.cts",
-        "default": "./dist/runtime.cjs"
+        "types": "./dist/runtime/dbg.d.cts",
+        "default": "./dist/runtime/dbg.cjs"
+      }
+    },
+    "./runtime-shim": {
+      "import": {
+        "types": "./dist/runtime/dbg-shim.d.ts",
+        "default": "./dist/runtime/dbg-shim.js"
+      },
+      "require": {
+        "types": "./dist/runtime/dbg-shim.d.cts",
+        "default": "./dist/runtime/dbg-shim.cjs"
       }
     },
     "./swc-plugin": "./plugin/swc_plugin_dbg.wasm",

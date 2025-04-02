@@ -11,17 +11,28 @@ const scriptPath = path.resolve(__dirname, 'script.ts');
 const dbgResolvePlugin: esbuild.Plugin = {
   name: 'dbg-resolve',
   setup(build) {
-    const resolveFlag = 'unplugin-dbg';
-
     build.onResolve({ filter: /^unplugin-dbg\/runtime$/ }, () => ({
       path: '@dbg/runtime',
-      namespace: resolveFlag,
+      namespace: 'dbg',
     }));
 
-    build.onLoad({ filter: /.*/, namespace: resolveFlag }, async () => ({
+    build.onResolve({ filter: /^unplugin-dbg\/runtime-shim$/ }, () => ({
+      path: '@dbg/runtime-shim',
+      namespace: 'dbg-shim',
+    }));
+
+    build.onLoad({ filter: /.*/, namespace: 'dbg' }, async () => ({
       loader: 'js',
       contents: await fs.readFileSync(
-        path.join(projectRoot, 'dist/runtime.js'),
+        path.join(projectRoot, 'dist/runtime/dbg.js'),
+        'utf-8'
+      ),
+    }));
+
+    build.onLoad({ filter: /.*/, namespace: 'dbg' }, async () => ({
+      loader: 'js',
+      contents: await fs.readFileSync(
+        path.join(projectRoot, 'dist/runtime/dbg-shim.js'),
         'utf-8'
       ),
     }));

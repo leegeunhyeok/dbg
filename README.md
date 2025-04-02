@@ -198,7 +198,14 @@ export interface Options {
 swc.transform(code, {
   jsc: {
     experimental: {
-      plugins: [['unplugin-dbg/swc-plugin', {}]],
+      plugins: [
+        [
+          'unplugin-dbg/swc-plugin',
+          {
+            enabled: true, // Required
+          },
+        ],
+      ],
     },
   },
 });

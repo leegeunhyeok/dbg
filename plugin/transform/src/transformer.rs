@@ -14,6 +14,7 @@ use swc_core::{
 use crate::types::{DbgArg, Loc};
 
 const DBG_RUNTIME_SRC: &str = "unplugin-dbg/runtime";
+const DBG_RUNTIME_SHIM_SRC: &str = "unplugin-dbg/runtime-shim";
 const DBG_EXP_MEMBER: &str = "_";
 const NL: &str = "\n";
 
@@ -25,6 +26,7 @@ pub struct DbgTransformer {
     enabled: bool,
     dbg_ident: Ident,
     has_dbg_call: bool,
+    runtime_src: &'static str,
 }
 
 impl DbgTransformer {
@@ -35,6 +37,11 @@ impl DbgTransformer {
             enabled,
             dbg_ident: private_ident!("__dbg"),
             has_dbg_call: false,
+            runtime_src: if enabled {
+                DBG_RUNTIME_SRC
+            } else {
+                DBG_RUNTIME_SHIM_SRC
+            },
         }
     }
 
@@ -140,7 +147,7 @@ impl VisitMut for DbgTransformer {
         // ```
         if self.has_dbg_call {
             let require_call =
-                quote_ident!("require").as_call(DUMMY_SP, vec![DBG_RUNTIME_SRC.as_arg()]);
+                quote_ident!("require").as_call(DUMMY_SP, vec![self.runtime_src.as_arg()]);
 
             let require_var_decl = require_call.into_var_decl(
                 VarDeclKind::Const,
@@ -180,7 +187,7 @@ impl VisitMut for DbgTransformer {
                         is_type_only: false,
                         span: DUMMY_SP,
                     })],
-                    src: Box::new(DBG_RUNTIME_SRC.into()),
+                    src: Box::new(self.runtime_src.into()),
                     type_only: false,
                     with: None,
                     span: DUMMY_SP,
@@ -196,11 +203,10 @@ impl VisitMut for DbgTransformer {
                 self.has_dbg_call = true;
 
                 if self.enabled == false {
-                    // If plugin is disabled, replace the call with `__dbg.shim` with keeping original arguments
+                    // If plugin is disabled, replace the call with shim of `__dbg` with keeping original arguments
                     *expr = self
                         .dbg_ident
                         .clone()
-                        .make_member("shim".into())
                         .as_call(DUMMY_SP, call_expr.args.drain(..).collect());
                     return;
                 }

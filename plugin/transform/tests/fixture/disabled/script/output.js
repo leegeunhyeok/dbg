@@ -1,9 +1,9 @@
-const { _: __dbg } = require("unplugin-dbg/runtime");
+const { _: __dbg } = require("unplugin-dbg/runtime-shim");
 const __mod = require("cjs");
-__dbg.shim("hello, world");
+__dbg("hello, world");
 function sum(a, b) {
-    const result = __dbg.shim(a + b);
-    __dbg.shim("sum res", result);
+    const result = __dbg(a + b);
+    __dbg("sum res", result);
 }
 function inner() {
     var dbg = ()=>undefined;
