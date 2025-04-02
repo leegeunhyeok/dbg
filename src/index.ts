@@ -4,8 +4,12 @@ import { mergeWith } from 'es-toolkit';
 import { createUnplugin, type UnpluginFactory } from 'unplugin';
 import type { Options } from './types';
 
-const require = module.createRequire(import.meta.url ?? __filename);
-const pluginPath = require.resolve('unplugin-dbg/swc-plugin');
+const __require =
+  typeof require === 'undefined'
+    ? module.createRequire(import.meta.url)
+    : require;
+
+const pluginPath = __require.resolve('unplugin-dbg/swc-plugin');
 
 function mergeArray(objValue: any[], srcValue: any[]) {
   if (Array.isArray(objValue)) {
