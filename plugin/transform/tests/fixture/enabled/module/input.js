@@ -18,7 +18,7 @@ function nested() {
   callback(() => {
     callback(() => {
       callback(() => {
-        dbg('in nested callback');
+        dbg('in nested callback', { value: callback(() => dbg('value callback')) });
       });
     });
   });

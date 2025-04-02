@@ -197,13 +197,12 @@ impl VisitMut for DbgTransformer {
     }
 
     fn visit_mut_expr(&mut self, expr: &mut Expr) {
-        let mut handled = false;
+        expr.visit_mut_children_with(self);
 
         if let Expr::Call(call_expr) = expr {
             if self.is_dbg_call(call_expr) {
                 // Set flag to `true` to insert import/require at the top of the module/script.
                 self.has_dbg_call = true;
-                handled = true;
 
                 if self.enabled == false {
                     // If plugin is disabled, replace the call with shim of `__dbg` with keeping original arguments
@@ -238,11 +237,18 @@ impl VisitMut for DbgTransformer {
                         .make_member("call".into())
                         .as_call(DUMMY_SP, args);
                 }
+            } else {
+                // Visit children of non `dbg` call expressions to find nested `dbg` calls.
+                //
+                // ```js
+                // foo(() => dbg('nested'));
+                //
+                // // 1. `foo` is non `dbg` call
+                // // 2. traverse children nodes of `foo`
+                // // 3. find `dbg` call -> handle the AST node with self.visit_mut_expr again
+                // ```
+                call_expr.visit_mut_children_with(self);
             }
-        }
-
-        if !handled {
-            expr.visit_mut_children_with(self);
         }
     }
 }

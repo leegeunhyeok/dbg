@@ -1,8 +1,8 @@
 const { _: __dbg } = require("unplugin-dbg/runtime");
-const __mod = require("cjs");
+const __mod = require('cjs');
 __dbg.call(null, {
-    expr: '"hello, world"',
-    value: "hello, world"
+    expr: "'hello, world'",
+    value: 'hello, world'
 });
 function sum(a, b) {
     const result = __dbg.call(null, {
@@ -10,8 +10,8 @@ function sum(a, b) {
         value: a + b
     });
     __dbg.call(null, {
-        expr: '"sum res"',
-        value: "sum res"
+        expr: "'sum res'",
+        value: 'sum res'
     }, {
         expr: "result",
         value: result
@@ -29,6 +29,14 @@ function nested() {
                 __dbg.call(null, {
                     expr: "'in nested callback'",
                     value: 'in nested callback'
+                }, {
+                    expr: "{\n  value: callback(()=>__dbg.call(null, {\n      expr: \"'value callback'\",\n      value: 'value callback'\n    }))\n}",
+                    value: {
+                        value: callback(()=>__dbg.call(null, {
+                                expr: "'value callback'",
+                                value: 'value callback'
+                            }))
+                    }
                 });
             });
         });
@@ -37,4 +45,3 @@ function nested() {
 sum(5, 10);
 inner();
 nested();
-

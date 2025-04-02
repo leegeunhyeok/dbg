@@ -1,10 +1,10 @@
-const __mod = require("cjs");
+const __mod = require('cjs');
 
-dbg("hello, world");
+dbg('hello, world');
 
 function sum(a, b) {
   const result = dbg(a + b);
-  dbg("sum res", result);
+  dbg('sum res', result);
 }
 
 function inner() {
@@ -18,7 +18,7 @@ function nested() {
   callback(() => {
     callback(() => {
       callback(() => {
-        dbg('in nested callback');
+        dbg('in nested callback', { value: callback(() => dbg('value callback')) });
       });
     });
   });

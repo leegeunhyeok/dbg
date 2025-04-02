@@ -29,6 +29,14 @@ function nested() {
                 __dbg.call(null, {
                     expr: "'in nested callback'",
                     value: 'in nested callback'
+                }, {
+                    expr: "{\n  value: callback(()=>__dbg.call(null, {\n      expr: \"'value callback'\",\n      value: 'value callback'\n    }))\n}",
+                    value: {
+                        value: callback(()=>__dbg.call(null, {
+                                expr: "'value callback'",
+                                value: 'value callback'
+                            }))
+                    }
                 });
             });
         });
