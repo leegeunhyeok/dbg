@@ -197,10 +197,13 @@ impl VisitMut for DbgTransformer {
     }
 
     fn visit_mut_expr(&mut self, expr: &mut Expr) {
+        let mut handled = false;
+
         if let Expr::Call(call_expr) = expr {
             if self.is_dbg_call(call_expr) {
                 // Set flag to `true` to insert import/require at the top of the module/script.
                 self.has_dbg_call = true;
+                handled = true;
 
                 if self.enabled == false {
                     // If plugin is disabled, replace the call with shim of `__dbg` with keeping original arguments
@@ -208,35 +211,38 @@ impl VisitMut for DbgTransformer {
                         .dbg_ident
                         .clone()
                         .as_call(DUMMY_SP, call_expr.args.drain(..).collect());
-                    return;
+                } else {
+                    let loc = self.get_loc(call_expr.span);
+                    let mut args = Vec::with_capacity(call_expr.args.len() + 1);
+
+                    // Context object (Location)
+                    args.push(
+                        loc.map_or(Expr::Lit(Lit::Null(Null { span: DUMMY_SP })), |loc| {
+                            loc.into_obj_lit().into()
+                        })
+                        .into(),
+                    );
+
+                    // Converted arguments
+                    args.extend(
+                        call_expr
+                            .args
+                            .drain(..)
+                            .map(|arg| self.to_dbg_arg(arg).into_arg()),
+                    );
+
+                    // Call `__dbg.call` with the converted arguments
+                    *expr = self
+                        .dbg_ident
+                        .clone()
+                        .make_member("call".into())
+                        .as_call(DUMMY_SP, args);
                 }
-
-                let loc = self.get_loc(call_expr.span);
-                let mut args = Vec::with_capacity(call_expr.args.len() + 1);
-
-                // Context object (Location)
-                args.push(
-                    loc.map_or(Expr::Lit(Lit::Null(Null { span: DUMMY_SP })), |loc| {
-                        loc.into_obj_lit().into()
-                    })
-                    .into(),
-                );
-
-                // Converted arguments
-                args.extend(
-                    call_expr
-                        .args
-                        .drain(..)
-                        .map(|arg| self.to_dbg_arg(arg).into_arg()),
-                );
-
-                // Call `__dbg.call` with the converted arguments
-                *expr = self
-                    .dbg_ident
-                    .clone()
-                    .make_member("call".into())
-                    .as_call(DUMMY_SP, args);
             }
+        }
+
+        if !handled {
+            expr.visit_mut_children_with(self);
         }
     }
 }

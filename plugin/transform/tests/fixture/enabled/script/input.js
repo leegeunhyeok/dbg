@@ -13,5 +13,17 @@ function inner() {
   dbg(1, 2, 3);
 }
 
+const callback = (cb) => cb();
+function nested() {
+  callback(() => {
+    callback(() => {
+      callback(() => {
+        dbg('in nested callback');
+      });
+    });
+  });
+}
+
 sum(5, 10);
 inner();
+nested();

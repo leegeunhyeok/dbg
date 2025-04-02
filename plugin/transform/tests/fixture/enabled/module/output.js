@@ -21,5 +21,19 @@ function inner() {
     var dbg = ()=>undefined;
     dbg(1, 2, 3);
 }
+const callback = (cb)=>cb();
+function nested() {
+    callback(()=>{
+        callback(()=>{
+            callback(()=>{
+                __dbg.call(null, {
+                    expr: "'in nested callback'",
+                    value: 'in nested callback'
+                });
+            });
+        });
+    });
+}
 sum(5, 10);
 inner();
+nested();
