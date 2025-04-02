@@ -5,12 +5,11 @@ import { createUnplugin, type UnpluginFactory } from 'unplugin';
 import type { Options } from './types';
 import { getBaseSwcParserConfig, mergeArray } from './utils';
 
-const __require =
-  typeof require === 'undefined'
-    ? module.createRequire(import.meta.url)
-    : require;
+const resolveModule = module.createRequire(
+  typeof __filename !== 'undefined' ? __filename : import.meta.url
+).resolve;
 
-const pluginPath = __require.resolve('unplugin-dbg/swc-plugin');
+const pluginWasmPath = resolveModule('unplugin-dbg/swc-plugin');
 
 export const unpluginFactory: UnpluginFactory<Options | undefined> = (
   options
@@ -23,7 +22,7 @@ export const unpluginFactory: UnpluginFactory<Options | undefined> = (
         jsc: {
           parser: getBaseSwcParserConfig(id),
           experimental: {
-            plugins: [[pluginPath, { enabled: options?.enabled ?? true }]],
+            plugins: [[pluginWasmPath, { enabled: options?.enabled ?? true }]],
           },
         },
       },

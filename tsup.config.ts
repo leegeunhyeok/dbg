@@ -7,5 +7,9 @@ export default defineConfig({
   sourcemap: false,
   clean: true,
   dts: true,
+  silent: true,
   format: ['esm', 'cjs'],
+  onSuccess: async () => {
+    console.log('Build finished successfully');
+  },
 });
