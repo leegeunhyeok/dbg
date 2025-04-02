@@ -1,0 +1,205 @@
+name: Integrations
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  setup:
+    name: Setup
+    if: contains(github.event.head_commit.message, 'skip ci') == false
+    runs-on: ubuntu-latest
+
+    outputs:
+      yarn-cache-path: ${{ steps.values.outputs.yarn-cache-path }}
+      yarn-cache-key: ${{ steps.values.outputs.yarn-cache-key }}
+      yarn-cache-restore-key: ${{ steps.values.outputs.yarn-cache-restore-key }}
+      rust-cache-key: ${{ steps.values.outputs.rust-cache-key }}
+      rust-cache-restore-key: ${{ steps.values.outputs.rust-cache-restore-key }}
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.12.0
+
+      - name: Enable corepack
+        run: corepack enable
+
+      - name: Store shared values
+        id: values
+        run: |
+          echo "yarn-cache-path=$(yarn config get cacheFolder)" >> $GITHUB_OUTPUT
+          echo "yarn-cache-key=${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}" >> $GITHUB_OUTPUT
+          echo "yarn-cache-restore-key=${{ runner.os }}-yarn-" >> $GITHUB_OUTPUT
+          echo "rust-cache-key=${{ runner.os }}-rust-${{ hashFiles('**/Cargo.toml') }}-${{ hashFiles('**/rust-toolchain') }}" >> $GITHUB_OUTPUT
+          echo "rust-cache-restore-key=${{ runner.os }}-rust-" >> $GITHUB_OUTPUT
+
+      - name: Check the cached rust environment
+        uses: actions/cache@v4
+        id: rust-cache
+        with:
+          path: ~/.cargo
+          key: ${{ steps.values.outputs.rust-cache-key }}
+          restore-keys: ${{ steps.values.outputs.rust-cache-restore-key }}
+          lookup-only: true
+
+      - name: Check the cached yarn dependencies
+        uses: actions/cache@v4
+        id: yarn-cache
+        with:
+          path: |
+            ${{ steps.values.outputs.yarn-cache-path }}
+            .pnp.*
+          key: ${{ steps.values.outputs.yarn-cache-key }}
+          restore-keys: ${{ steps.values.outputs.yarn-cache-restore-key }}
+          lookup-only: true
+
+      - name: Setup rust
+        if: steps.rust-cache.outputs.cache-hit != 'true'
+        run: |
+          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+          . "$HOME/.cargo/env"
+          rustup target add wasm32-wasip1
+          rustup show active-toolchain
+
+      - name: Install dependencies
+        if: steps.yarn-cache.outputs.cache-hit != 'true'
+        run: |
+          yarn install --immutable
+
+      - name: Chaching rust environment
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo
+          key: ${{ steps.values.outputs.rust-cache-key }}
+          restore-keys: ${{ steps.values.outputs.rust-cache-restore-key }}
+
+      - name: Chaching yarn dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ steps.values.outputs.yarn-cache-path }}
+            .pnp.*
+          key: ${{ steps.values.outputs.yarn-cache-key }}
+          restore-keys: ${{ steps.values.outputs.yarn-cache-restore-key }}
+
+  lint:
+    name: Lint
+    needs: setup
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.12.0
+
+      - name: Enable corepack
+        run: corepack enable
+
+      - name: Restore rust cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo
+          key: ${{ needs.setup.outputs.rust-cache-key }}
+          restore-keys: ${{ needs.setup.outputs.rust-cache-restore-key }}
+          fail-on-cache-miss: true
+
+      - name: Restore yarn cache
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            ${{ needs.setup.outputs.yarn-cache-path }}
+            .pnp.*
+          key: ${{ needs.setup.outputs.yarn-cache-key }}
+          restore-keys: ${{ needs.setup.outputs.yarn-cache-restore-key }}
+          fail-on-cache-miss: true
+
+      - name: Prepare
+        run: |
+          . "$HOME/.cargo/env"
+          yarn install --immutable --mode skip-build
+
+      - name: Lint
+        run: yarn lint
+
+  test:
+    name: Test
+    needs: setup
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.12.0
+
+      - name: Enable corepack
+        run: corepack enable
+
+      - name: Restore yarn cache
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            ${{ needs.setup.outputs.yarn-cache-path }}
+            .pnp.*
+          key: ${{ needs.setup.outputs.yarn-cache-key }}
+          restore-keys: ${{ needs.setup.outputs.yarn-cache-restore-key }}
+          fail-on-cache-miss: true
+
+      - name: Setup rust
+        run: |
+          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+          . "$HOME/.cargo/env"
+          rustup target add wasm32-wasip1
+
+      - name: Prepare
+        run: |
+          . "$HOME/.cargo/env"
+          yarn install --immutable --mode skip-build
+
+      - name: Test
+        run: yarn test
+
+  build:
+    name: Build
+    needs: [setup, lint, test]
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.12.0
+
+      - name: Enable corepack
+        run: corepack enable
+
+      - name: Restore yarn cache
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            ${{ needs.setup.outputs.yarn-cache-path }}
+            .pnp.*
+          key: ${{ needs.setup.outputs.yarn-cache-key }}
+          restore-keys: ${{ needs.setup.outputs.yarn-cache-restore-key }}
+          fail-on-cache-miss: true
+
+      - name: Setup rust
+        run: |
+          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+          . "$HOME/.cargo/env"
+          rustup target add wasm32-wasip1
+
+      - name: Prepare
+        run: |
+          yarn install --immutable --mode skip-build
+
+      - name: Build
+        run: yarn build
