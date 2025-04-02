@@ -3,6 +3,7 @@ import * as swc from '@swc/core';
 import { mergeWith } from 'es-toolkit';
 import { createUnplugin, type UnpluginFactory } from 'unplugin';
 import type { Options } from './types';
+import { getBaseSwcParserConfig, mergeArray } from './utils';
 
 const __require =
   typeof require === 'undefined'
@@ -10,12 +11,6 @@ const __require =
     : require;
 
 const pluginPath = __require.resolve('unplugin-dbg/swc-plugin');
-
-function mergeArray(objValue: any[], srcValue: any[]) {
-  if (Array.isArray(objValue)) {
-    return objValue.concat(srcValue);
-  }
-}
 
 export const unpluginFactory: UnpluginFactory<Options | undefined> = (
   options
@@ -26,6 +21,7 @@ export const unpluginFactory: UnpluginFactory<Options | undefined> = (
       {
         filename: id,
         jsc: {
+          parser: getBaseSwcParserConfig(id),
           experimental: {
             plugins: [[pluginPath, { enabled: options?.enabled ?? true }]],
           },
