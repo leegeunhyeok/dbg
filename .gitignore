@@ -19,9 +19,5 @@ plugin/*.wasm
 
 # misc
 dist
+node_modules
 .DS_Store
-
-
-
-.nx/cache
-.nx/workspace-data
