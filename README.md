@@ -2,7 +2,7 @@
 
 # dbg
 
-<img alt="Main image" width="250" src="https://raw.githubusercontent.com/leegeunhyeok/dbg/main/main.png">
+<img alt="Main image" width="200" src="https://raw.githubusercontent.com/leegeunhyeok/dbg/main/main.png">
 
 Rust's [dbg!](https://doc.rust-lang.org/std/macro.dbg.html) for JavaScript, logging values with context effortlessly.
 
