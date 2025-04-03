@@ -25,7 +25,13 @@ export const unpluginFactory: UnpluginFactory<Options | undefined> = (
           experimental: {
             plugins: [[pluginWasmPath, { enabled: options?.enabled ?? true }]],
           },
+          transform: {
+            react: {
+              runtime: 'automatic',
+            },
+          },
         },
+        sourceMaps: true,
       },
       options?.baseSwcOptions
         ? typeof options.baseSwcOptions === 'function'
