@@ -15,6 +15,7 @@ export const unpluginFactory: UnpluginFactory<Options | undefined> = (
   options
 ) => ({
   name: 'unplugin-dbg',
+  enforce: 'pre',
   transform(code, id) {
     const mergedOptions = mergeWith<swc.Options, swc.Options>(
       {
