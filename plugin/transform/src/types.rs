@@ -1,19 +1,13 @@
-use swc_core::ecma::ast::*;
-use utils::kv;
+use swc_core::ecma::ast::{Expr, ExprOrSpread, KeyValueProp, ObjectLit, Prop, PropName};
 
-mod utils {
-    use super::*;
-
-    /// Create a key-value property AST for the object literal.
-    pub fn kv(key: &str, value: Expr) -> Prop {
-        Prop::KeyValue(KeyValueProp {
-            key: PropName::Ident(key.into()),
-            value: Box::new(value),
-        })
-    }
+fn key_value(key: &str, value: Expr) -> Prop {
+    Prop::KeyValue(KeyValueProp {
+        key: PropName::Ident(key.into()),
+        value: Box::new(value),
+    })
 }
 
-pub struct DbgArg {
+pub(crate) struct DbgArg {
     /// Stringified actual expression in source code.
     expr: String,
     /// Original expression
@@ -21,7 +15,7 @@ pub struct DbgArg {
 }
 
 impl DbgArg {
-    pub fn new(expr: String, orig: Expr) -> Self {
+    pub(crate) const fn new(expr: String, orig: Expr) -> Self {
         Self { expr, orig }
     }
 
@@ -38,13 +32,15 @@ impl DbgArg {
     ///         value: 1,
     ///     },
     /// }
-    pub fn into_arg(self) -> ExprOrSpread {
+    pub(crate) fn into_arg(self) -> ExprOrSpread {
+        let Self { expr, orig } = self;
+
         ExprOrSpread {
             spread: None,
             expr: Box::new(Expr::Object(ObjectLit {
                 props: vec![
-                    kv("expr", Expr::from(self.expr)).into(),
-                    kv("value", self.orig).into(),
+                    key_value("expr", Expr::from(expr)).into(),
+                    key_value("value", orig).into(),
                 ],
                 ..Default::default()
             })),
@@ -52,9 +48,19 @@ impl DbgArg {
     }
 }
 
-pub struct Loc(pub String, pub usize, pub usize);
+#[cfg(target_arch = "wasm32")]
+pub(crate) struct Loc {
+    file: String,
+    line: usize,
+    column: usize,
+}
 
+#[cfg(target_arch = "wasm32")]
 impl Loc {
+    pub(crate) const fn new(file: String, line: usize, column: usize) -> Self {
+        Self { file, line, column }
+    }
+
     /// Convert `Loc` to `ObjectLit` AST.
     ///
     /// ```js
@@ -64,14 +70,14 @@ impl Loc {
     ///     col: 1,
     /// }
     /// ```
-    pub fn into_obj_lit(self) -> ObjectLit {
-        let Self(ref file, line, col) = self;
+    pub(crate) fn into_obj_lit(self) -> ObjectLit {
+        let Self { file, line, column } = self;
 
         ObjectLit {
             props: vec![
-                kv("file", Expr::from(file.to_owned())).into(),
-                kv("line", Expr::from(line)).into(),
-                kv("col", Expr::from(col)).into(),
+                key_value("file", Expr::from(file)).into(),
+                key_value("line", Expr::from(line)).into(),
+                key_value("col", Expr::from(column)).into(),
             ],
             ..Default::default()
         }

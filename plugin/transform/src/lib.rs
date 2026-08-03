@@ -1,3 +1,5 @@
+//! AST transform implementation for `unplugin-dbg`.
+
 use swc_core::{
     common::SyntaxContext,
     ecma::{
@@ -8,6 +10,7 @@ use swc_core::{
 };
 use transformer::DbgTransformer;
 
+/// Creates an SWC pass that transforms unresolved `dbg` calls.
 pub fn dbg(
     cm: PluginSourceMapProxy,
     unresolved_ctxt: SyntaxContext,

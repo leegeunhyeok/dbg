@@ -1,3 +1,9 @@
+//! SWC plugin entry point for `unplugin-dbg`.
+#![allow(
+    missing_docs,
+    reason = "the SWC plugin macro generates undocumented exported shims"
+)]
+
 use serde::Deserialize;
 use swc_core::{
     common::SyntaxContext,
@@ -12,6 +18,11 @@ struct DbgConfig {
     enabled: bool,
 }
 
+/// Applies the `dbg` transform using the plugin metadata configuration.
+///
+/// # Panics
+///
+/// Panics when the plugin configuration is missing or invalid.
 #[plugin_transform]
 pub fn process_transform(program: Program, metadata: TransformPluginProgramMetadata) -> Program {
     let config = serde_json::from_str::<DbgConfig>(

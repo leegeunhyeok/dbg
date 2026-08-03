@@ -1,26 +1,32 @@
 #[cfg(target_arch = "wasm32")]
 use swc_common::{FileName, SourceMapper};
+#[cfg(not(target_arch = "wasm32"))]
+use swc_core::ecma::ast::{Lit, Null};
 use swc_core::{
     common::{sync::Lrc, SourceMap, Span, SyntaxContext, DUMMY_SP},
     ecma::{
-        ast::*,
-        codegen::{text_writer::JsWriter, Emitter},
+        ast::{
+            CallExpr, Callee, Expr, ExprOrSpread, Ident, ImportDecl, ImportNamedSpecifier,
+            ImportPhase, ImportSpecifier, KeyValuePatProp, Module, ModuleDecl, ModuleExportName,
+            ModuleItem, ObjectPat, ObjectPatProp, Pat, PropName, Script, VarDeclKind,
+        },
+        codegen::{text_writer::JsWriter, Config, Emitter},
         utils::{private_ident, quote_ident, ExprFactory},
         visit::{noop_visit_mut_type, VisitMut, VisitMutWith},
     },
     plugin::proxies::PluginSourceMapProxy,
 };
 
-use crate::types::{DbgArg, Loc};
+use crate::types::DbgArg;
+#[cfg(target_arch = "wasm32")]
+use crate::types::Loc;
 
 const DBG_RUNTIME_SRC: &str = "unplugin-dbg/runtime";
 const DBG_RUNTIME_SHIM_SRC: &str = "unplugin-dbg/runtime-shim";
 const DBG_EXP_MEMBER: &str = "_";
 const NL: &str = "\n";
 
-pub struct DbgTransformer {
-    #[allow(dead_code)]
-    // Referenced in `get_loc`
+pub(crate) struct DbgTransformer {
     cm: PluginSourceMapProxy,
     unresolved_ctxt: SyntaxContext,
     enabled: bool,
@@ -30,7 +36,11 @@ pub struct DbgTransformer {
 }
 
 impl DbgTransformer {
-    pub fn new(cm: PluginSourceMapProxy, unresolved_ctxt: SyntaxContext, enabled: bool) -> Self {
+    pub(crate) fn new(
+        cm: PluginSourceMapProxy,
+        unresolved_ctxt: SyntaxContext,
+        enabled: bool,
+    ) -> Self {
         Self {
             cm,
             unresolved_ctxt,
@@ -59,79 +69,67 @@ impl DbgTransformer {
     /// ```
     fn is_dbg_call(&self, call_expr: &CallExpr) -> bool {
         match &call_expr.callee {
-            Callee::Expr(callee_expr) => {
-                // Only handle `dbg` function when it's unresolved.
-                callee_expr.is_ident_ref_to("dbg")
-                    && callee_expr.as_ident().unwrap().ctxt == self.unresolved_ctxt
-            }
+            // Only handle `dbg` when the identifier is unresolved.
+            Callee::Expr(callee_expr) => callee_expr
+                .as_ident()
+                .is_some_and(|ident| ident.sym == "dbg" && ident.ctxt == self.unresolved_ctxt),
             _ => false,
         }
     }
+}
 
-    /// Convert `Expr` to JavaScript string.
-    ///
-    /// ```js
-    /// a + b + 10 + "hello"
-    /// // Into
-    /// "a + b + 10 + 'hello'"
-    /// ```
-    fn expr_to_str(&self, expr: &Expr) -> String {
-        let cm: Lrc<SourceMap> = Default::default();
-        let mut buf = vec![];
-        let mut wr = JsWriter::new(cm.clone(), NL, &mut buf, None);
-        wr.set_indent_str("  " /* 2 spaces */);
+/// Converts an expression to its JavaScript source representation.
+fn expression_to_string(expr: &Expr) -> String {
+    let cm: Lrc<SourceMap> = Lrc::default();
+    let mut buffer = Vec::new();
+    let mut writer = JsWriter::new(cm.clone(), NL, &mut buffer, None);
+    writer.set_indent_str("  ");
 
-        let mut emitter = Emitter {
-            cfg: Default::default(),
-            comments: None,
-            wr: Box::new(wr),
-            cm,
-        };
+    let mut emitter = Emitter {
+        cfg: Config::default(),
+        comments: None,
+        wr: Box::new(writer),
+        cm,
+    };
 
-        emitter
-            .emit_script(&Script {
-                span: Default::default(),
-                shebang: None,
-                body: vec![expr.clone().into_stmt()],
-            })
-            .unwrap();
+    emitter
+        .emit_script(&Script {
+            span: Span::default(),
+            shebang: None,
+            body: vec![expr.clone().into_stmt()],
+        })
+        .expect("emitting JavaScript to an in-memory buffer should not fail");
 
-        // Convert to string and strip newline and semicolon at the end
-        String::from_utf8(buf)
-            .unwrap()
-            .trim_end_matches(NL)
-            .trim_end_matches(";")
-            .to_string()
-    }
+    String::from_utf8(buffer)
+        .expect("the SWC code generator should emit valid UTF-8")
+        .trim_end_matches(NL)
+        .trim_end_matches(';')
+        .to_owned()
+}
 
-    /// Get location of the given span
-    #[allow(unused_variables)]
-    fn get_loc(&self, span: Span) -> Option<Loc> {
-        // `lookup_char_pos` is only available in `wasm32` target.
-        #[cfg(target_arch = "wasm32")]
-        {
-            let loc = self.cm.lookup_char_pos(span.lo());
-            let file = match loc.file.name.as_ref() {
-                FileName::Real(path) => path.to_string_lossy().to_string(),
-                _ => String::from("<anonymous>"),
-            };
+#[cfg(target_arch = "wasm32")]
+fn location_expression(cm: &PluginSourceMapProxy, span: Span) -> Expr {
+    let loc = cm.lookup_char_pos(span.lo());
+    let file = match loc.file.name.as_ref() {
+        FileName::Real(path) => path.to_string_lossy().into_owned(),
+        _ => "<anonymous>".to_owned(),
+    };
 
-            return Some(Loc(
-                file,
-                loc.line,
-                loc.col.0 + 1, /* Add 1 for zero-based col index */
-            ));
-        }
-        #[allow(unreachable_code)]
-        None
-    }
+    Loc::new(file, loc.line, loc.col.0 + 1)
+        .into_obj_lit()
+        .into()
+}
 
-    /// Convert `ExprOrSpread` to `DbgArg`
-    fn to_dbg_arg(&self, arg: ExprOrSpread) -> DbgArg {
-        let expr_str = self.expr_to_str(&*arg.expr);
+#[cfg(not(target_arch = "wasm32"))]
+const fn location_expression(_cm: &PluginSourceMapProxy, _span: Span) -> Expr {
+    Expr::Lit(Lit::Null(Null { span: DUMMY_SP }))
+}
 
-        DbgArg::new(expr_str, *arg.expr)
-    }
+/// Converts an expression argument to the runtime representation.
+fn to_dbg_arg(arg: ExprOrSpread) -> DbgArg {
+    let expr = expression_to_string(&arg.expr);
+
+    DbgArg::new(expr, *arg.expr)
 }
 
 impl VisitMut for DbgTransformer {
@@ -204,30 +202,17 @@ impl VisitMut for DbgTransformer {
                 // Set flag to `true` to insert import/require at the top of the module/script.
                 self.has_dbg_call = true;
 
-                if self.enabled == false {
-                    // If plugin is disabled, replace the call with shim of `__dbg` with keeping original arguments
-                    *expr = self
-                        .dbg_ident
-                        .clone()
-                        .as_call(DUMMY_SP, call_expr.args.drain(..).collect());
-                } else {
-                    let loc = self.get_loc(call_expr.span);
+                if self.enabled {
                     let mut args = Vec::with_capacity(call_expr.args.len() + 1);
 
                     // Context object (Location)
-                    args.push(
-                        loc.map_or(Expr::Lit(Lit::Null(Null { span: DUMMY_SP })), |loc| {
-                            loc.into_obj_lit().into()
-                        })
-                        .into(),
-                    );
+                    args.push(location_expression(&self.cm, call_expr.span).into());
 
                     // Converted arguments
                     args.extend(
-                        call_expr
-                            .args
-                            .drain(..)
-                            .map(|arg| self.to_dbg_arg(arg).into_arg()),
+                        std::mem::take(&mut call_expr.args)
+                            .into_iter()
+                            .map(|arg| to_dbg_arg(arg).into_arg()),
                     );
 
                     // Call `__dbg.call` with the converted arguments
@@ -236,18 +221,13 @@ impl VisitMut for DbgTransformer {
                         .clone()
                         .make_member("call".into())
                         .as_call(DUMMY_SP, args);
+                } else {
+                    // If disabled, keep the original arguments and call the runtime shim.
+                    *expr = self
+                        .dbg_ident
+                        .clone()
+                        .as_call(DUMMY_SP, std::mem::take(&mut call_expr.args));
                 }
-            } else {
-                // Visit children of non `dbg` call expressions to find nested `dbg` calls.
-                //
-                // ```js
-                // foo(() => dbg('nested'));
-                //
-                // // 1. `foo` is non `dbg` call
-                // // 2. traverse children nodes of `foo`
-                // // 3. find `dbg` call -> handle the AST node with self.visit_mut_expr again
-                // ```
-                call_expr.visit_mut_children_with(self);
             }
         }
     }

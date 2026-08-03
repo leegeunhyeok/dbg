@@ -69,6 +69,9 @@ yarn add unplugin-dbg
 
 Add the plugin to your bundler config:
 
+Supported bundler entry points: `vite`, `rollup`, `rolldown`, `webpack`,
+`rspack`, `rsbuild`, `esbuild`, `farm`, `bun`, and `unloader`.
+
 <details>
 <summary>Vite</summary><br>
 

@@ -1,4 +1,6 @@
-use std::path::PathBuf;
+//! Fixture tests for the `dbg` transform.
+
+use std::path::{Path, PathBuf};
 
 use swc_common::sync::OnceCell;
 use swc_core::{
@@ -8,7 +10,7 @@ use swc_core::{
 };
 use swc_dbg::dbg;
 use swc_ecma_parser::{Syntax, TsSyntax};
-use swc_ecma_transforms_testing::test_fixture;
+use swc_ecma_transforms_testing::{test_fixture, FixtureTestConfig};
 
 fn tr(enabled: bool) -> impl VisitMut + Pass {
     let unresolved_mark = Mark::new();
@@ -27,8 +29,7 @@ fn tr(enabled: bool) -> impl VisitMut + Pass {
     )
 }
 
-#[testing::fixture("tests/fixture/enabled/**/input.js")]
-fn fixture_enabled(input: PathBuf) {
+fn run_fixture(input: &Path, enabled: bool) {
     let filename = input.to_string_lossy();
     let output = input.with_file_name("output.js");
 
@@ -37,26 +38,27 @@ fn fixture_enabled(input: PathBuf) {
             tsx: filename.ends_with(".tsx"),
             ..Default::default()
         }),
-        &|_| tr(true),
-        &input,
+        &|_| tr(enabled),
+        input,
         &output,
-        Default::default(),
+        FixtureTestConfig::default(),
     );
 }
 
-#[testing::fixture("tests/fixture/disabled/**/input.js")]
-fn fixture_disabled(input: PathBuf) {
-    let filename = input.to_string_lossy();
-    let output = input.with_file_name("output.js");
+#[testing::fixture("tests/fixture/enabled/**/input.js")]
+#[allow(
+    clippy::needless_pass_by_value,
+    reason = "the fixture macro supplies an owned path"
+)]
+fn fixture_enabled(input: PathBuf) {
+    run_fixture(&input, true);
+}
 
-    test_fixture(
-        Syntax::Typescript(TsSyntax {
-            tsx: filename.ends_with(".tsx"),
-            ..Default::default()
-        }),
-        &|_| tr(false),
-        &input,
-        &output,
-        Default::default(),
-    );
+#[testing::fixture("tests/fixture/disabled/**/input.js")]
+#[allow(
+    clippy::needless_pass_by_value,
+    reason = "the fixture macro supplies an owned path"
+)]
+fn fixture_disabled(input: PathBuf) {
+    run_fixture(&input, false);
 }
