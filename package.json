@@ -114,7 +114,7 @@
   },
   "devDependencies": {
     "@nuxt/kit": "^3.16.2",
-    "@swc/core": "^1.11.13",
+    "@swc/core": "^1.15.47",
     "@types/node": "^22",
     "esbuild": "^0.25.2",
     "oxlint": "^0.16.4",
